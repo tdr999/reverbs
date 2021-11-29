@@ -45,8 +45,8 @@ short reverberating_delay(short x, Word16 dry, Word16 wet, Word16 g, short delay
 		indiceBuffer %= delay_samples; //ca sa nu depaseasca short; nu afectaza restu de cod
 		//scoatem primul esantion din coada
 		short popat = dequeue();
-		append(add(mult(x, wet), mult(popat,g))); //apendam in buffer elementul
-		return add(mult(x, dry), popat); //returnam elementul proaspat scos
+		append(L_add(mult(x, wet), mult(popat,g))); //apendam in buffer elementul
+		return L_add(mult(x, dry), popat); //returnam elementul proaspat scos
 										//din buf, adunat cu semnalul
 										//dry aferent
 		
@@ -70,7 +70,7 @@ int main()
 	while(fscanf(input, "%hd", &x) != EOF)
 	{
         sex =  (short)(reverberating_delay(x, WORD16(0.6), WORD16(0.7), WORD16(0.8), 80)); //de scos mizeria asta
-		fprintf(output, "%hd ", sex);
+		fprintf(output, "%d ", sex);
 
 	}
 
