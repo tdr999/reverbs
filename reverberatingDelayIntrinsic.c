@@ -14,7 +14,7 @@
 
 
 short lenBuffer = 4000;
-short BUFFER[4000];
+int BUFFER[4000];
 short indiceBuffer = 0;
 short delay_samples = 0;
 short flagFirstPass = 0; //vom folosi dupa ce se umple buffeerul prima data
