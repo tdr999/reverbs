@@ -131,9 +131,9 @@ obj.stop()
 #%%
 
 #program de control in C
+#allpass modificat
 
-
-iesireCW = open("C:\\Users\\tudor_ytmdyrk\\Desktop\\p3 cmpilat\\iesireWORD.dat", "r+")
+iesireCW = open("C:\\Users\\tudor_ytmdyrk\\Desktop\\p3 cmpilat\\alPass.dat", "r+")
 a = [i for i in iesireCW]  
 a = [int(i) for i in a[0].split()]
 
@@ -181,7 +181,7 @@ def all_pass(x, g, M):
 
 #%%
 
-all_audio = all_pass(tehno, 0.4, 80)
+all_audio = all_pass(tehno, 0.6, 80)
 
 #%%
 
