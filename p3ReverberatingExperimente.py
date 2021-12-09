@@ -1,7 +1,6 @@
-import PyPDF2
 import os
 import wave 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy as np
 import simpleaudio as sa
 
@@ -103,7 +102,7 @@ fisier.close()
 
 #%%
 
-obj = sa.play_buffer(code_warior, 2, 2, 44100)
+#obj = sa.play_buffer(code_warior, 2, 2, 44100)
 
 
 #%%
