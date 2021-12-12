@@ -5,8 +5,8 @@ import numpy as np
 import simpleaudio as sa
 
 
-if os.getcwd() != 'C:\\Users\\tudor_ytmdyrk\\Desktop\\proiect 3':
-    os.chdir('C:\\Users\\tudor_ytmdyrk\\Desktop\\proiect 3')
+if os.getcwd() != 'C:\\Users\\tudor_ytmdyrk\\Desktop\\p3 cmpilat':
+    os.chdir('C:\\Users\\tudor_ytmdyrk\\Desktop\\p3 cmpilat')
 
 
 def read_audio(nume):
@@ -19,10 +19,7 @@ def read_audio(nume):
 
 
 
-    
-#%%
-
-tehno = read_audio('tehno.wav')
+tehno = read_audio('tehno2.wav')
 
 #%%
 obj = sa.play_buffer(tehno, 2, 2, 44100)
@@ -35,7 +32,7 @@ obj.stop()
 
 #%%
 
-#reverberating delay
+#reverberating delay, ambele functii st la fel dar implementate diferit
 
 
 def reverberating_delay2(x, dry, wet, g, M):
@@ -46,17 +43,18 @@ def reverberating_delay2(x, dry, wet, g, M):
     #y[n] = x[n] * dry + (x[n] * wet + x[n-M]*g)
     
     y [:M]= x[:M] * dry #toate alea care ies curate
-    buffer[:M] = x[:M] * wet #ft import wetul
+    buffer[:M] = x[:M] * wet * (1-g) #ft import wetul
     
     for i in range(M, len(x)):
-        buffer[i] = x[i] * wet + buffer[i-M] * g  #calculam noua vaeabla din bufer
+        buffer[i] = x[i] * wet * (1-g) + buffer[i-M] * g  #calculam noua vaeabla din bufer
         y[i] = x[i] * dry + buffer[i-M]
         
     #observatie ca variabilele care au inrat in buffer au fost inmultite cu wet
     y = np.array(y)
     return y.astype(np.int16)
 
-
+#ambele fac acelasi lucru, doar rev 2 e mai inceata ca timp de executie si 
+#ca volum, nush am un bug undeva
 
 def reverberating_delay(init, dry, wet, g, M):
     M = round(M * 44.1)
@@ -80,7 +78,7 @@ def reverberating_delay(init, dry, wet, g, M):
     return y.astype(np.int16)
 #%%
 
-ir_teh = reverberating_delay2(tehno, 0.6, 0.7, 0.8, 80)
+ir_teh = reverberating_delay2(tehno, 0.6, 0.4, 0.8, 80)
 
 #%%
 obj = sa.play_buffer(ir_teh, 2, 2, 44100 )
@@ -105,34 +103,11 @@ fisier.close()
 #obj = sa.play_buffer(code_warior, 2, 2, 44100)
 
 
-#%%
-
-
-
-iesireCW = open("proiect3/iesire.dat", "r+")
-a = [i for i in iesireCW]
-a = [int(i) for i in a[0].split()]
-
-#sex = [0 if (a.index(i)+1)%2==0 else i for i in a]
-#sex = np.array(sex)
-#sex = sex.astype(np.int16)
-a = np.array(a)
-#a = a * 1.5
-a = a.astype(np.int16)
-
-#%%
-obj = sa.play_buffer(a, 2, 2, 44100)
-
-#%%
-
-obj.stop()
-
-#%%
 
 #program de control in C
-#allpass modificat
 
-iesireCW = open("C:\\Users\\tudor_ytmdyrk\\Desktop\\p3 cmpilat\\alPass.dat", "r+")
+
+iesireCW = open("C:\\Users\\tudor_ytmdyrk\\Desktop\\p3 cmpilat\\iesireReverberating.dat", "r+")
 a = [i for i in iesireCW]  
 a = [int(i) for i in a[0].split()]
 
@@ -142,6 +117,18 @@ a = a.astype(np.int16)
 
 #%%
 obj = sa.play_buffer(a, 2, 2, 44100)
+#%%
+
+#masuratoare erori esantion cu esantion
+
+q = [abs(ir_teh[i] - a[i]) / (abs(ir_teh[i]) + 0.0001) * 100.0 for i in range(len(a))]
+
+
+print(q[4000:4010])
+
+#testTes = open("C:\\Users\\tudor_ytmdyrk\\Desktop\\p3 cmpilat\\zeu.dat","w")
+#for i in q:
+#    testTes.write(str(i)+ " ")
 
 #%%
 
@@ -192,3 +179,17 @@ obj = sa.play_buffer(all_audio, 2, 2, 44100)
 
 obj.stop()
 
+#%%
+
+iesireCW = open("C:\\Users\\tudor_ytmdyrk\\Desktop\\p3 cmpilat\\iesireAllPass.dat", "r+")
+a = [i for i in iesireCW]  
+a = [int(i) for i in a[0].split()]
+
+a = np.array(a)
+a = a.astype(np.int16)
+
+#%%
+obj = sa.play_buffer(a, 2, 2, 44100)
+#%%
+
+obj.stop()
