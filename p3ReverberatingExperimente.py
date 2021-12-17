@@ -113,6 +113,19 @@ a = [int(i) for i in a[0].split()]
 
 a = np.array(a)
 a = a.astype(np.int16)
+#%%
+
+##comparatii
+#program de control in C
+
+
+iesireCW = open("C:\\Users\\tudor_ytmdyrk\\Desktop\\p3 cmpilat\\allSchroeder.dat", "r+")
+b = [i for i in iesireCW]  
+b = [int(i) for i in b[0].split()]
+
+b = np.array(b)
+b = b.astype(np.int16)
+
 
 
 #%%
@@ -193,3 +206,189 @@ obj = sa.play_buffer(a, 2, 2, 44100)
 #%%
 
 obj.stop()
+
+
+
+#%%
+
+
+#filtru fir
+
+def refInit(x):
+
+
+    y = [0 for i in range(len(x))]
+    ponderi = [0.841, 0.504, 0.490,
+           0.379, 0.380, 0.346,
+           0.289, 0.272, 0.192,
+           0.193, 0.217, 0.181,
+           0.180, 0.181, 0.176,
+           0.142, 0.167, 0.134]
+
+
+    intarzieri = [190, 759, 44, 190,
+              9, 123, 706, 119,
+              384, 66, 35, 75,
+              419, 4, 79, 66,
+              53, 194]
+
+
+  
+
+    # buffer = [0 for i in range(4000)] #init buffer
+
+    # inta = sum(intarzieri)
+    
+    # for i in range(len(x)):
+    #     buffer[i % inta] = x[i]
+    #     #acum calculam intarzierea
+    #     temp = 0
+    #     for j in range(len(ponderi)):
+    #         temp = temp + buffer[3515 - sum(intarzieri[:j])+1] * ponderi[j]
+    #     y.append(temp)
+    
+    for j in range(len(ponderi)):
+        y[sum(intarzieri[:j]):] = y[sum(intarzieri[:j]):] + x[:(len(x) - sum(intarzieri[:j]))]*ponderi[j]
+        
+    y = np.array(y)
+    y = y / 5.265
+    return y.astype(np.int16)
+
+
+
+
+#%%
+
+
+q = refInit(tehno) #3 secunde
+
+
+
+#%%
+
+obj = sa.play_buffer(q, 2, 2, 44100)
+#%%
+
+obj.stop()
+
+
+#%%
+
+
+
+def comburi(x):
+    x = x / 6
+    milisecunde = [40, 44, 48, 52, 56, 60]
+ #   gainuri = [10**(-3 * round(i * 44.1 ) / 44.1) for i in milisecunde] #form 3.43
+   # print(gainuri)
+    y = 0
+    for i in range(len(milisecunde)):
+        y = y + reverberating_delay(x, 0, 1, 10**(-3), milisecunde[i])
+        
+    y = np.array(y)
+    return y.astype(np.int16)
+
+
+
+#%%
+q = q/2
+matei = comburi(q)
+
+#%%
+
+
+obj = sa.play_buffer(matei, 2, 2, 44100)
+#%%
+
+obj.stop()
+
+
+
+
+
+#%%
+
+mihai = all_pass(matei, 10**(-3), 7)
+#%%
+semnalPeSus = mihai + q
+semnalPeSus = semnalPeSus / max(semnalPeSus)
+george = np.array(semnalPeSus)
+george.astype(np.int16)
+
+
+
+#%%
+
+
+obj = sa.play_buffer(q, 2, 2, 44100)
+#%%
+
+obj.stop()
+
+
+
+
+#at this point am facut toata partea de sus
+
+
+#%%
+#din mom ce moorer nu merge, hai sa facem schroeder
+#pare ca merge
+
+def schroeder(x, dry):
+    #in milisecunde
+    #35, 40, 45, 50, gain 0.5 tot
+    #la trece tot
+    #in ms 5. 2, gain 0.7
+    x = x / 2 # sa nu depasim
+    copieX = x / 4
+    temp = [0 for i in range(len(x))]
+    temp = np.array(temp)
+    #in loc sa modificam esantioanele
+    #dam un numar de ms aprox egal cu nr 
+    #esantioane
+    temp = temp + reverberating_delay2(copieX, 0, 1, 0.5, 35)
+    temp = temp + reverberating_delay2(copieX, 0, 1, 0.5, 40)
+    temp = temp + reverberating_delay2(copieX, 0, 1, 0.5, 45)
+    temp = temp + reverberating_delay2(copieX, 0, 1, 0.5, 50)
+    temp = all_pass(temp, 0.7, 5)
+    temp = all_pass(temp, 0.7, 2)
+    y = temp + dry * x
+    
+    y = np.array(y)
+    return y.astype(np.int16) #PE 32 DE BITI
+
+#%%
+
+q = schroeder(tehno, 0.8)
+
+#%%
+
+iesireCW = open("C:\\Users\\tudor_ytmdyrk\\Desktop\\p3 cmpilat\\Schroeder.dat", "r+")
+a = [i for i in iesireCW]  
+a = [int(i) for i in a[0].split()]
+
+a = np.array(a)
+a = a.astype(np.int16)
+
+#%%
+obj = sa.play_buffer(q, 2, 2, 44100)
+#%%
+
+obj.stop()
+
+
+#%%
+
+
+import matplotlib.pyplot as plt
+
+
+plt.figure(figsize=(15, 5))
+plt.plot(q, label="q")
+plt.plot(a, label="a", alpha = 0.6)
+plt.legend()
+plt.grid()
+plt.show()
+
+
