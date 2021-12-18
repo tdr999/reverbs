@@ -85,7 +85,7 @@ short schroeder(short x, Word16 dry){
     temp = add(temp, reverberatingDelay(copieX, WORD16(0), WORD16(0.999), WORD16(0.5), 40, &buffer2));
     temp = add(temp, reverberatingDelay(copieX, WORD16(0), WORD16(0.999), WORD16(0.5), 45, &buffer3));
     temp = add(temp, reverberatingDelay(copieX, WORD16(0), WORD16(0.999), WORD16(0.5), 50, &buffer4));
-    temp = AllpassFilter(temp, WORD16(0.7), 5, &buffer5); //refolosim un buffer
+    temp = AllpassFilter(temp, WORD16(0.7), 5, &buffer5); // fa functie de resetat bufere pentru reutilizare si eficientizare memorie 
     temp = AllpassFilter(temp, WORD16(0.7), 2, &buffer6);
     //temp = (short)temp;
     temp = add(temp, mult(dry, x));

@@ -54,7 +54,8 @@ def reverberating_delay2(x, dry, wet, g, M):
     return y.astype(np.int16)
 
 #ambele fac acelasi lucru, doar rev 2 e mai inceata ca timp de executie si 
-#ca volum, nush am un bug undeva
+#ca volum, nush am un bug undeva, dar rev 2 e implementata in c
+#ah, reverberating delay nu e scalata
 
 def reverberating_delay(init, dry, wet, g, M):
     M = round(M * 44.1)
@@ -134,7 +135,7 @@ obj = sa.play_buffer(a, 2, 2, 44100)
 
 #masuratoare erori esantion cu esantion
 
-q = [abs(ir_teh[i] - a[i]) / (abs(ir_teh[i]) + 0.0001) * 100.0 for i in range(len(a))]
+q = [abs(ir_teh[i] - a[i]) / (abs(ir_teh[i]) + 1) * 100.0 for i in range(len(a))]
 
 
 print(q[4000:4010])
@@ -226,32 +227,28 @@ def refInit(x):
            0.142, 0.167, 0.134]
 
 
+    # intarzieri = [191, 760, 45, 191,
+    #           10, 124, 707, 120,
+    #           385, 67, 36, 76,
+    #           420, 5, 80, 67,
+    #           54, 195]
+
+
+  
+
     intarzieri = [190, 759, 44, 190,
               9, 123, 706, 119,
               384, 66, 35, 75,
               419, 4, 79, 66,
               53, 194]
-
-
-  
-
-    # buffer = [0 for i in range(4000)] #init buffer
-
-    # inta = sum(intarzieri)
-    
-    # for i in range(len(x)):
-    #     buffer[i % inta] = x[i]
-    #     #acum calculam intarzierea
-    #     temp = 0
-    #     for j in range(len(ponderi)):
-    #         temp = temp + buffer[3515 - sum(intarzieri[:j])+1] * ponderi[j]
-    #     y.append(temp)
     
     for j in range(len(ponderi)):
-        y[sum(intarzieri[:j]):] = y[sum(intarzieri[:j]):] + x[:(len(x) - sum(intarzieri[:j]))]*ponderi[j]
+        if j != 0:
+            print(  sum(intarzieri[:j])  )
+            y[sum(intarzieri[:j]):] = y[sum(intarzieri[:j]):] + x[:( len(x) - sum(intarzieri[:j]))]*ponderi[j]
         
     y = np.array(y)
-    y = y / 5.265
+    y = y 
     return y.astype(np.int16)
 
 
@@ -262,7 +259,9 @@ def refInit(x):
 
 q = refInit(tehno) #3 secunde
 
+#%%
 
+plt.plot(q[:200])
 
 #%%
 
@@ -283,7 +282,7 @@ def comburi(x):
    # print(gainuri)
     y = 0
     for i in range(len(milisecunde)):
-        y = y + reverberating_delay(x, 0, 1, 10**(-3), milisecunde[i])
+        y = y + reverberating_delay(x, 0, 1, 0.01, milisecunde[i])
         
     y = np.array(y)
     return y.astype(np.int16)
@@ -291,7 +290,7 @@ def comburi(x):
 
 
 #%%
-q = q/2
+#q = q/2
 matei = comburi(q)
 
 #%%
@@ -308,11 +307,11 @@ obj.stop()
 
 #%%
 
-mihai = all_pass(matei, 10**(-3), 7)
+mihai = all_pass(matei, 0.01, 7)
 #%%
-semnalPeSus = mihai + q
-semnalPeSus = semnalPeSus / max(semnalPeSus)
-george = np.array(semnalPeSus)
+#semnalPeSus = mihai + q
+#semnalPeSus = semnalPeSus / max(semnalPeSus)
+george = np.array(mihai)
 george.astype(np.int16)
 
 
@@ -320,12 +319,14 @@ george.astype(np.int16)
 #%%
 
 
-obj = sa.play_buffer(q, 2, 2, 44100)
+obj = sa.play_buffer(george, 2, 2, 44100)
 #%%
 
 obj.stop()
 
+#%%
 
+plt.plot(george)
 
 
 #at this point am facut toata partea de sus
@@ -364,12 +365,61 @@ q = schroeder(tehno, 0.8)
 
 #%%
 
-iesireCW = open("C:\\Users\\tudor_ytmdyrk\\Desktop\\p3 cmpilat\\Schroeder.dat", "r+")
+iesireCW = open("C:\\Users\\tudor_ytmdyrk\\Desktop\\p3 cmpilat\\iesireMoorer.dat", "r+")
 a = [i for i in iesireCW]  
 a = [int(i) for i in a[0].split()]
 
 a = np.array(a)
 a = a.astype(np.int16)
+
+#%%
+
+obj = sa.play_buffer(a, 2, 2, 44100)
+#%%
+
+obj.stop()
+
+#%%
+import matplotlib.pyplot as plt
+plt.figure(figsize = (15, 5))
+plt.plot(a, label = "CW", marker='x')
+plt.plot(q*7, label = "original", alpha = 0.4, color='red')
+plt.plot(q*7-a, label = "diferenta", alpha = 0.4, color='green', marker="*")
+
+plt.grid()
+plt.legend()
+plt.show()
+
+
+
+#%%
+
+
+#exista o diferenta mare la fiecare
+#buffer. Adica, la itemul 1543 e o
+#diferenta enorma, atunci e si momentu
+#cand intra primu buffer in actiune, 
+#crek e un bug in c, dar anyways,
+#good enough
+
+import matplotlib.pyplot as plt
+
+
+plt.figure(figsize=(15, 5))
+plt.plot(george[:4500], label="george")
+plt.plot(-a[:4500], label="a", alpha = 0.6)
+#plt.figure(figsize=(15, 5))
+#plt.plot(q-a, label="diferenta")
+
+plt.legend()
+plt.grid()
+plt.show()
+
+
+#%%
+
+
+dif = q - a
 
 #%%
 obj = sa.play_buffer(q, 2, 2, 44100)
@@ -378,17 +428,6 @@ obj = sa.play_buffer(q, 2, 2, 44100)
 obj.stop()
 
 
-#%%
 
-
-import matplotlib.pyplot as plt
-
-
-plt.figure(figsize=(15, 5))
-plt.plot(q, label="q")
-plt.plot(a, label="a", alpha = 0.6)
-plt.legend()
-plt.grid()
-plt.show()
 
 

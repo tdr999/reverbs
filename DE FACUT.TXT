@@ -1,0 +1,4 @@
+-> curatat coduri c si python
+-> facut biblioteca si containerizat si mai departe in c
+-> korusurile
+-> anceput pdfuri
