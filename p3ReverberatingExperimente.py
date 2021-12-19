@@ -19,7 +19,7 @@ def read_audio(nume):
 
 
 
-tehno = read_audio('tehno2.wav')
+tehno = read_audio('lana.wav')
 
 #%%
 obj = sa.play_buffer(tehno, 2, 2, 44100)
@@ -31,6 +31,28 @@ obj.stop()
 
 
 #%%
+
+
+#FOR TESTING PURPOSES O SA SCRIEM FISIERUL INTR UN ETXT SI O SA COMPARAM CU REALITAEA
+
+
+
+fisier = open("intrare.dat", "w+")
+for i in tehno:
+    fisier.write(str(i) +" ")
+fisier.close()
+
+
+
+
+#%%
+
+
+# =============================================================================
+# celula cu functii
+# =============================================================================
+
+
 
 #reverberating delay, ambele functii st la fel dar implementate diferit
 
@@ -77,80 +99,7 @@ def reverberating_delay(init, dry, wet, g, M):
     y = buffer + init_scalat_iesire
     y = np.array(y)
     return y.astype(np.int16)
-#%%
 
-ir_teh = reverberating_delay2(tehno, 0.6, 0.4, 0.8, 80)
-
-#%%
-obj = sa.play_buffer(ir_teh, 2, 2, 44100 )
-
-#%%
-obj.stop()
-
-#%%
-
-
-#FOR TESTING PURPOSES O SA SCRIEM FISIERUL INTR UN ETXT SI O SA COMPARAM CU REALITAEA
-
-
-
-fisier = open("intrare.dat", "w+")
-for i in tehno:
-    fisier.write(str(i) +" ")
-fisier.close()
-
-#%%
-
-#obj = sa.play_buffer(code_warior, 2, 2, 44100)
-
-
-
-#program de control in C
-
-
-iesireCW = open("C:\\Users\\tudor_ytmdyrk\\Desktop\\p3 cmpilat\\iesireReverberating.dat", "r+")
-a = [i for i in iesireCW]  
-a = [int(i) for i in a[0].split()]
-
-a = np.array(a)
-a = a.astype(np.int16)
-#%%
-
-##comparatii
-#program de control in C
-
-
-iesireCW = open("C:\\Users\\tudor_ytmdyrk\\Desktop\\p3 cmpilat\\allSchroeder.dat", "r+")
-b = [i for i in iesireCW]  
-b = [int(i) for i in b[0].split()]
-
-b = np.array(b)
-b = b.astype(np.int16)
-
-
-
-#%%
-obj = sa.play_buffer(a, 2, 2, 44100)
-#%%
-
-#masuratoare erori esantion cu esantion
-
-q = [abs(ir_teh[i] - a[i]) / (abs(ir_teh[i]) + 1) * 100.0 for i in range(len(a))]
-
-
-print(q[4000:4010])
-
-#testTes = open("C:\\Users\\tudor_ytmdyrk\\Desktop\\p3 cmpilat\\zeu.dat","w")
-#for i in q:
-#    testTes.write(str(i)+ " ")
-
-#%%
-
-obj.stop()
-
-iesireCW.close()
-
-#%%
 
 # =============================================================================
 # FILTRUL TRECE TOT  care e ca un comb doar ca se ia dupa adunare sampleur
@@ -179,38 +128,30 @@ def all_pass(x, g, M):
     return y.astype(np.int16)
 
 
-#%%
-
-all_audio = all_pass(tehno, 0.6, 80)
-
-#%%
-
-
-obj = sa.play_buffer(all_audio, 2, 2, 44100)
-
-#%%
-
-
-obj.stop()
-
-#%%
-
-iesireCW = open("C:\\Users\\tudor_ytmdyrk\\Desktop\\p3 cmpilat\\iesireAllPass.dat", "r+")
-a = [i for i in iesireCW]  
-a = [int(i) for i in a[0].split()]
-
-a = np.array(a)
-a = a.astype(np.int16)
-
-#%%
-obj = sa.play_buffer(a, 2, 2, 44100)
-#%%
-
-obj.stop()
+def schroeder(x, dry):
+    #in milisecunde
+    #35, 40, 45, 50, gain 0.5 tot
+    #la trece tot
+    #in ms 5. 2, gain 0.7
+    x = x / 2 # sa nu depasim
+    copieX = x / 4
+    temp = [0 for i in range(len(x))]
+    temp = np.array(temp)
+    #in loc sa modificam esantioanele
+    #dam un numar de ms aprox egal cu nr 
+    #esantioane
+    temp = temp + reverberating_delay(copieX, 0, 1, 0.5, 35)
+    temp = temp + reverberating_delay(copieX, 0, 1, 0.5, 40)
+    temp = temp + reverberating_delay(copieX, 0, 1, 0.5, 45)
+    temp = temp + reverberating_delay(copieX, 0, 1, 0.5, 50)
+    temp = all_pass(temp, 0.7, 5)
+    temp = all_pass(temp, 0.7, 2)
+    y = temp + dry * x
+    
+    y = np.array(y)
+    return y.astype(np.int16) #PE 32 DE BITI
 
 
-
-#%%
 
 
 #filtru fir
@@ -252,118 +193,67 @@ def refInit(x):
     return y.astype(np.int16)
 
 
+#comburi ptr moorer
 
-
-#%%
-
-
-q = refInit(tehno) #3 secunde
-
-#%%
-
-plt.plot(q[:200])
-
-#%%
-
-obj = sa.play_buffer(q, 2, 2, 44100)
-#%%
-
-obj.stop()
-
-
-#%%
-
-
-
-def comburi(x):
+def comburi(x, gainComburi):
     x = x / 6
     milisecunde = [40, 44, 48, 52, 56, 60]
  #   gainuri = [10**(-3 * round(i * 44.1 ) / 44.1) for i in milisecunde] #form 3.43
    # print(gainuri)
     y = 0
     for i in range(len(milisecunde)):
-        y = y + reverberating_delay(x, 0, 1, 0.01, milisecunde[i])
+        y = y + reverberating_delay(x, 0, 1, gainComburi, milisecunde[i])
         
     y = np.array(y)
     return y.astype(np.int16)
 
 
 
-#%%
-#q = q/2
-matei = comburi(q)
-
-#%%
 
 
-obj = sa.play_buffer(matei, 2, 2, 44100)
-#%%
-
-obj.stop()
-
-
-
-
-
-#%%
-
-mihai = all_pass(matei, 0.01, 7)
-#%%
-#semnalPeSus = mihai + q
-#semnalPeSus = semnalPeSus / max(semnalPeSus)
-george = np.array(mihai)
-george.astype(np.int16)
-
-
-
-#%%
-
-
-obj = sa.play_buffer(george, 2, 2, 44100)
-#%%
-
-obj.stop()
-
-#%%
-
-plt.plot(george)
-
-
-#at this point am facut toata partea de sus
-
-
-#%%
-#din mom ce moorer nu merge, hai sa facem schroeder
-#pare ca merge
-
-def schroeder(x, dry):
-    #in milisecunde
-    #35, 40, 45, 50, gain 0.5 tot
-    #la trece tot
-    #in ms 5. 2, gain 0.7
-    x = x / 2 # sa nu depasim
-    copieX = x / 4
-    temp = [0 for i in range(len(x))]
-    temp = np.array(temp)
-    #in loc sa modificam esantioanele
-    #dam un numar de ms aprox egal cu nr 
-    #esantioane
-    temp = temp + reverberating_delay2(copieX, 0, 1, 0.5, 35)
-    temp = temp + reverberating_delay2(copieX, 0, 1, 0.5, 40)
-    temp = temp + reverberating_delay2(copieX, 0, 1, 0.5, 45)
-    temp = temp + reverberating_delay2(copieX, 0, 1, 0.5, 50)
-    temp = all_pass(temp, 0.7, 5)
-    temp = all_pass(temp, 0.7, 2)
-    y = temp + dry * x
-    
+def moorer(x, reglSemnal, reglReflexii, reglReverb, gainComburi):
+    #x = x / 4 #for good measure
+    reflInit = refInit(x)
+    iesireComburi = comburi(reflInit, gainComburi)
+    reverbFinal = all_pass(iesireComburi, 0.8, 7)
+    y = reglSemnal * x + reglReflexii * reflInit + reglReverb * reverbFinal
     y = np.array(y)
-    return y.astype(np.int16) #PE 32 DE BITI
+    return y.astype(np.int16)
+    
+#https://christianfloisand.wordpress.com/2012/10/18/algorithmic-reverbs-the-moorer-design/
+
 
 #%%
 
-q = schroeder(tehno, 0.8)
+#semnalControl = moorer(tehno, 0.4, 0.5, 0.5, 0.6)
+
+semnalControl = schroeder(tehno,0.7)
 
 #%%
+obj = sa.play_buffer(semnalControl, 2, 2, 44100 )
+
+#%%
+obj.stop()
+
+#%%
+
+#obj = sa.play_buffer(code_warior, 2, 2, 44100)
+
+
+
+#program de control in C
+
+
+iesireCW = open("C:\\Users\\tudor_ytmdyrk\\Desktop\\p3 cmpilat\\iesireReverberating.dat", "r+")
+a = [i for i in iesireCW]  
+a = [int(i) for i in a[0].split()]
+
+a = np.array(a)
+a = a.astype(np.int16)
+#%%
+
+##comparatii
+#
 
 iesireCW = open("C:\\Users\\tudor_ytmdyrk\\Desktop\\p3 cmpilat\\iesireMoorer.dat", "r+")
 a = [i for i in iesireCW]  
@@ -406,8 +296,8 @@ import matplotlib.pyplot as plt
 
 
 plt.figure(figsize=(15, 5))
-plt.plot(george[:4500], label="george")
-plt.plot(-a[:4500], label="a", alpha = 0.6)
+plt.plot(semnalControl[:4500], label="semnalControl")
+plt.plot(a[:4500], label="a", alpha = 0.6)
 #plt.figure(figsize=(15, 5))
 #plt.plot(q-a, label="diferenta")
 
