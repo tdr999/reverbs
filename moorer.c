@@ -179,21 +179,22 @@ short ri(short x, bufferObject *buffer){
 
 
 
-
-
-short moorer(short x){
-    short temp, copieTemp, sum = 0;
-    temp = ri(x, &bufferRI);
-    copieTemp = shr(temp, 3);
+short moorer(short x, short reglSemnal, short reglReflexii, short reglReverb){
+    short reflexiiInit, copieReflexiiInit, iesireComburi = 0, reverbFinal, y;
+    float gainComburi = 0.8;
+    reflexiiInit = ri(x, &bufferRI);
+    copieReflexiiInit = shr(reflexiiInit, 3); //scalare for good measure
     //vom aproxima in milisecunde esantioanele din moorer, pentru ca functia noastra ia milisecunde nu esantioane
-    sum = add(sum, reverberatingDelay(copieTemp, 0, WORD16(1), WORD16(0.01), 40, &buffer1));
-    sum = add(sum, reverberatingDelay(copieTemp, 0, WORD16(1), WORD16(0.01), 44, &buffer2));
-    sum = add(sum, reverberatingDelay(copieTemp, 0, WORD16(1), WORD16(0.01), 48, &buffer3));
-    sum = add(sum, reverberatingDelay(copieTemp, 0, WORD16(1), WORD16(0.01), 52, &buffer4));
-    sum = add(sum, reverberatingDelay(copieTemp, 0, WORD16(1), WORD16(0.01), 56, &buffer5));
-    sum = add(sum, reverberatingDelay(copieTemp, 0, WORD16(1), WORD16(0.01), 60, &buffer6));
-    sum = AllpassFilter(sum, WORD16(0.01), 7,&buffer7);
-    return sum;
+    iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, 0, WORD16(1), WORD16(gainComburi), 40, &buffer1));
+    iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, 0, WORD16(1), WORD16(gainComburi), 44, &buffer2));
+    iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, 0, WORD16(1), WORD16(gainComburi), 48, &buffer3));
+    iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, 0, WORD16(1), WORD16(gainComburi), 52, &buffer4));
+    iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, 0, WORD16(1), WORD16(gainComburi), 56, &buffer5));
+    iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, 0, WORD16(1), WORD16(gainComburi), 60, &buffer6));
+    reverbFinal = AllpassFilter(iesireComburi, WORD16(0.8), 7,&buffer7);
+    y = add( add( mult(x, reglSemnal), mult(reglReflexii, reflexiiInit)), mult(reglReverb, reverbFinal));
+
+    return y;
 }
 
 
@@ -208,7 +209,7 @@ int main()
 
     while(fscanf(input, "%hd", &x) != EOF)
     {
-        fprintf(outputMoorer, "%hd ", moorer(x));
+        fprintf(outputMoorer, "%hd ", moorer(x, WORD16(0.5), WORD16(0.5), WORD16(0.5)));
 
     }
     printf("intarzier de 17 %d\n", intarzieri[17]);

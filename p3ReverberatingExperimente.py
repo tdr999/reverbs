@@ -79,6 +79,8 @@ def reverberating_delay2(x, dry, wet, g, M):
 #ca volum, nush am un bug undeva, dar rev 2 e implementata in c
 #ah, reverberating delay nu e scalata
 
+#for all intents and purposes, ce se intoarce de la 2 == 0.7 * ce se intoarce de la 1
+
 def reverberating_delay(init, dry, wet, g, M):
     M = round(M * 44.1)
     a1 = dry / (abs(dry) + abs(wet*(1-g)))
@@ -196,13 +198,13 @@ def refInit(x):
 #comburi ptr moorer
 
 def comburi(x, gainComburi):
-    x = x / 6
+   # x = x / 8
     milisecunde = [40, 44, 48, 52, 56, 60]
  #   gainuri = [10**(-3 * round(i * 44.1 ) / 44.1) for i in milisecunde] #form 3.43
    # print(gainuri)
     y = 0
     for i in range(len(milisecunde)):
-        y = y + reverberating_delay(x, 0, 1, gainComburi, milisecunde[i])
+        y = y + reverberating_delay(x, 0, 1, gainComburi, milisecunde[i]) * 0.7#07 de la functie gresita
         
     y = np.array(y)
     return y.astype(np.int16)
@@ -212,8 +214,9 @@ def comburi(x, gainComburi):
 
 
 def moorer(x, reglSemnal, reglReflexii, reglReverb, gainComburi):
-    #x = x / 4 #for good measure
+    #x = x / 8 #for good measure
     reflInit = refInit(x)
+    reflInit = reflInit / 8 #for good measure
     iesireComburi = comburi(reflInit, gainComburi)
     reverbFinal = all_pass(iesireComburi, 0.8, 7)
     y = reglSemnal * x + reglReflexii * reflInit + reglReverb * reverbFinal
@@ -226,8 +229,9 @@ def moorer(x, reglSemnal, reglReflexii, reglReverb, gainComburi):
 #%%
 
 #semnalControl = moorer(tehno, 0.4, 0.5, 0.5, 0.6)
-
-semnalControl = schroeder(tehno,0.7)
+semnalControl = moorer(tehno, 0.5, 0.5, 0.5, 0.8)
+#semnalControl2 = reverberating_delay2(tehno,0.5, 0.5, 0.5, 200)
+#semnalControl1 = reverberating_delay(tehno,0.5, 0.5, 0.5, 200)
 
 #%%
 obj = sa.play_buffer(semnalControl, 2, 2, 44100 )
@@ -235,21 +239,6 @@ obj = sa.play_buffer(semnalControl, 2, 2, 44100 )
 #%%
 obj.stop()
 
-#%%
-
-#obj = sa.play_buffer(code_warior, 2, 2, 44100)
-
-
-
-#program de control in C
-
-
-iesireCW = open("C:\\Users\\tudor_ytmdyrk\\Desktop\\p3 cmpilat\\iesireReverberating.dat", "r+")
-a = [i for i in iesireCW]  
-a = [int(i) for i in a[0].split()]
-
-a = np.array(a)
-a = a.astype(np.int16)
 #%%
 
 ##comparatii
@@ -272,13 +261,25 @@ obj.stop()
 #%%
 import matplotlib.pyplot as plt
 plt.figure(figsize = (15, 5))
-plt.plot(a, label = "CW", marker='x')
-plt.plot(q*7, label = "original", alpha = 0.4, color='red')
-plt.plot(q*7-a, label = "diferenta", alpha = 0.4, color='green', marker="*")
+plt.plot(semnalControl1, label = "1")
+plt.plot(semnalControl2, label = "2", alpha = 0.4, color='red')
+#plt.plot(q*7-a, label = "diferenta", alpha = 0.4, color='green', marker="*")
 
 plt.grid()
 plt.legend()
 plt.show()
+
+#%%
+
+plt.figure(figsize = (15, 5))
+plt.plot(a, label = "CodeWarrior")
+plt.plot(semnalControl, label = "Python", alpha = 0.4, color='red')
+#plt.plot(q*7-a, label = "diferenta", alpha = 0.4, color='green', marker="*")
+
+plt.grid()
+plt.legend()
+plt.show()
+
 
 
 
