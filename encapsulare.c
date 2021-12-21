@@ -45,7 +45,6 @@ short flagFirstPassReflexii[18];
 
 
 bufferObject bufferRI, buffer1, buffer2, buffer3, buffer4, buffer5, buffer6, buffer7;
-bufferObject buffereComburi[6];
 
 void append(short a, bufferObject *buffer)
 {
@@ -105,21 +104,69 @@ short AllpassFilter(Word16 x, Word16 g, Word16 delay_ms, bufferObject *buffer){
 
 
 
+short flagFirstReset = 0;
 short ri(short x, bufferObject *buffer){
     buffer->delaySamples = intarzieri[17];
-
-    buffer->indiceBuffer %= intarzieri[17]; //resetam indicele si ca sa nu depaseasca si ca sa lista circulara
     append(x, buffer);
+    if(flagFirstPassReflexii[17] == 0){
+        if (buffer->indiceBuffer == intarzieri[0]){
+            flagFirstPassReflexii[0] = 1;
+            printf("primu facut 1\n");
+
+        }
+
+
+        if (buffer->indiceBuffer == intarzieri[1])
+            flagFirstPassReflexii[1] = 1;
+        if (buffer->indiceBuffer == intarzieri[2])
+            flagFirstPassReflexii[2] = 1;
+        if (buffer->indiceBuffer == intarzieri[3])
+            flagFirstPassReflexii[3] = 1;
+        if (buffer->indiceBuffer == intarzieri[4])
+            flagFirstPassReflexii[4] = 1;
+        if (buffer->indiceBuffer == intarzieri[5])
+            flagFirstPassReflexii[5] = 1;
+        if (buffer->indiceBuffer == intarzieri[6])
+            flagFirstPassReflexii[6] = 1;
+        if (buffer->indiceBuffer == intarzieri[7])
+            flagFirstPassReflexii[7] = 1;
+        if (buffer->indiceBuffer == intarzieri[8])
+            flagFirstPassReflexii[8] = 1;
+        if (buffer->indiceBuffer == intarzieri[9])
+            flagFirstPassReflexii[9] = 1;
+        if (buffer->indiceBuffer == intarzieri[10])
+            flagFirstPassReflexii[10] = 1;
+        if (buffer->indiceBuffer == intarzieri[11])
+            flagFirstPassReflexii[11] = 1;
+        if (buffer->indiceBuffer == intarzieri[12])
+            flagFirstPassReflexii[12] = 1;
+        if (buffer->indiceBuffer == intarzieri[13])
+            flagFirstPassReflexii[13] = 1;
+        if (buffer->indiceBuffer == intarzieri[14])
+            flagFirstPassReflexii[14] = 1;
+        if (buffer->indiceBuffer == intarzieri[15])
+            flagFirstPassReflexii[15] = 1;
+        if (buffer->indiceBuffer == intarzieri[16])
+            flagFirstPassReflexii[16] = 1;
+        if (buffer->indiceBuffer == intarzieri[17]){
+            flagFirstPassReflexii[17] = 1; 
+            printf("de 17 facut1\n");
+            flagFirstReset = 1;
+        }
+    }
+
+
     int i, suma = 0;
     for (i = 0; i < 18; i++){
-        if (buffer->indiceBuffer - intarzieri[i] < 0 ){
+        if (flagFirstPassReflexii[i] == 1 && (buffer->indiceBuffer - intarzieri[i] < 0) ){
             suma = add(suma, mult(buffer->BUFFER[buffer->indiceBuffer  + intarzieri[17] - intarzieri[i]], ponderi[i])); //m am gandit foarte mult la formula asta. indiceCurent+Lungimetotala-intarziere[i]
         }
-        else {
+        else if (flagFirstPassReflexii[i] == 1 ){
             suma = add(suma, mult(buffer->BUFFER[buffer->indiceBuffer - intarzieri[i]], ponderi[i])); //m am gandit foarte mult la formula asta. indiceCurent+Lungimetotala-intarziere[i]
         }
 
     } 
+    buffer->indiceBuffer %= intarzieri[17]; //resetam indicele si ca sa nu depaseasca si ca sa lista circulara
 
 
     return suma;
@@ -130,17 +177,23 @@ short ri(short x, bufferObject *buffer){
 }
 
 
-short milisecundeComburi[] = {40, 44, 48, 52, 56, 60};
+
 
 short moorer(short x, short reglSemnal, short reglReflexii, short reglReverb){
-    short reflexiiInit, copieReflexiiInit, iesireComburi = WORD16(0), reverbFinal, y;
+    short reflexiiInit, copieReflexiiInit, iesireComburi = 0, reverbFinal, y;
     float gainComburi = 0.8;
     reflexiiInit = ri(x, &bufferRI);
-    int i;
     copieReflexiiInit = shr(reflexiiInit, 3); //scalare for good measure
-    for (i = 0; i < 6; i++) {iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, WORD16(0), WORD16(0.999), WORD16(gainComburi), milisecundeComburi[i], &buffereComburi[i]));}
-    reverbFinal = AllpassFilter(iesireComburi, WORD16(0.5), 7,&buffer7);
+    //vom aproxima in milisecunde esantioanele din moorer, pentru ca functia noastra ia milisecunde nu esantioane
+    iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, 0, WORD16(1), WORD16(gainComburi), 40, &buffer1));
+    iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, 0, WORD16(1), WORD16(gainComburi), 44, &buffer2));
+    iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, 0, WORD16(1), WORD16(gainComburi), 48, &buffer3));
+    iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, 0, WORD16(1), WORD16(gainComburi), 52, &buffer4));
+    iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, 0, WORD16(1), WORD16(gainComburi), 56, &buffer5));
+    iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, 0, WORD16(1), WORD16(gainComburi), 60, &buffer6));
+    reverbFinal = AllpassFilter(iesireComburi, WORD16(0.8), 7,&buffer7);
     y = add( add( mult(x, reglSemnal), mult(reglReflexii, reflexiiInit)), mult(reglReverb, reverbFinal));
+
     return y;
 }
 
@@ -153,18 +206,13 @@ int main()
     FILE *outputMoorer = fopen("iesireMoorer.dat", "w+b"); //experimentam cu coada
     short x, temp;
     printf("befor while\n");
-    int i = 0;
-    for (i = 0; i < 6; i++){
-        printf("adresa lui %d %p\n", i, &buffereComburi[i]);
-    }
 
     while(fscanf(input, "%hd", &x) != EOF)
     {
-        fprintf(outputMoorer, "%hd ", moorer(x, WORD16(0.2), WORD16(0.7), WORD16(0.8)));
+        fprintf(outputMoorer, "%hd ", moorer(x, WORD16(0.5), WORD16(0.5), WORD16(0.5)));
 
     }
     printf("intarzier de 17 %d\n", intarzieri[17]);
-    printf("in acest program, s1 este %hd", WORD16(0.999) - WORD16(0.8)); //cred ca de asta e mult mai amplificat semnalul
 
     fclose(input);
     fclose(outputMoorer);

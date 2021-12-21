@@ -45,7 +45,6 @@ short flagFirstPassReflexii[18];
 
 
 bufferObject bufferRI, buffer1, buffer2, buffer3, buffer4, buffer5, buffer6, buffer7;
-bufferObject buffereComburi[6];
 
 void append(short a, bufferObject *buffer)
 {
@@ -130,17 +129,24 @@ short ri(short x, bufferObject *buffer){
 }
 
 
-short milisecundeComburi[] = {40, 44, 48, 52, 56, 60};
+
 
 short moorer(short x, short reglSemnal, short reglReflexii, short reglReverb){
-    short reflexiiInit, copieReflexiiInit, iesireComburi = WORD16(0), reverbFinal, y;
+    short reflexiiInit, copieReflexiiInit, iesireComburi = 0, reverbFinal, y;
     float gainComburi = 0.8;
     reflexiiInit = ri(x, &bufferRI);
-    int i;
-    copieReflexiiInit = shr(reflexiiInit, 3); //scalare for good measure
-    for (i = 0; i < 6; i++) {iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, WORD16(0), WORD16(0.999), WORD16(gainComburi), milisecundeComburi[i], &buffereComburi[i]));}
-    reverbFinal = AllpassFilter(iesireComburi, WORD16(0.5), 7,&buffer7);
+/*    copieReflexiiInit = shr(reflexiiInit, 3); //scalare for good measure
+    //vom aproxima in milisecunde esantioanele din moorer, pentru ca functia noastra ia milisecunde nu esantioane
+    iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, WORD16(0), WORD16(0.999), WORD16(gainComburi), 40, &buffer1));
+    iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, WORD16(0), WORD16(0.999), WORD16(gainComburi), 44, &buffer2));
+    iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, WORD16(0), WORD16(0.999), WORD16(gainComburi), 48, &buffer3));
+    iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, WORD16(0), WORD16(0.999), WORD16(gainComburi), 52, &buffer4));
+    iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, WORD16(0), WORD16(0.999), WORD16(gainComburi), 56, &buffer5));
+    iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, WORD16(0), WORD16(0.999), WORD16(gainComburi), 60, &buffer6));
+    reverbFinal = AllpassFilter(iesireComburi, WORD16(0.8), 7,&buffer7);
     y = add( add( mult(x, reglSemnal), mult(reglReflexii, reflexiiInit)), mult(reglReverb, reverbFinal));
+*/ //for testing purpose
+    y = reflexiiInit;
     return y;
 }
 
@@ -153,18 +159,13 @@ int main()
     FILE *outputMoorer = fopen("iesireMoorer.dat", "w+b"); //experimentam cu coada
     short x, temp;
     printf("befor while\n");
-    int i = 0;
-    for (i = 0; i < 6; i++){
-        printf("adresa lui %d %p\n", i, &buffereComburi[i]);
-    }
 
     while(fscanf(input, "%hd", &x) != EOF)
     {
-        fprintf(outputMoorer, "%hd ", moorer(x, WORD16(0.2), WORD16(0.7), WORD16(0.8)));
+        fprintf(outputMoorer, "%hd ", moorer(x, WORD16(0.5), WORD16(0.5), WORD16(0.5)));
 
     }
     printf("intarzier de 17 %d\n", intarzieri[17]);
-    printf("in acest program, s1 este %hd", WORD16(0.999) - WORD16(0.8)); //cred ca de asta e mult mai amplificat semnalul
 
     fclose(input);
     fclose(outputMoorer);

@@ -59,16 +59,18 @@ fisier.close()
 
 def reverberating_delay2(x, dry, wet, g, M):
     M = round(M * 44.1)
+    #ar trebui introduse macrourile din starcore aici, dar vom face urmatoarea mizerie
+    s1 = (1-g) 
     buffer = np.zeros(len(x)) #buffer de lungimea de intrare
     y = np.zeros(len(x))
     #functia sane de transfer e ceva gen
     #y[n] = x[n] * dry + (x[n] * wet + x[n-M]*g)
     
     y [:M]= x[:M] * dry #toate alea care ies curate
-    buffer[:M] = x[:M] * wet * (1-g) #ft import wetul
+    buffer[:M] = x[:M] * wet * s1 #ft import wetul
     
     for i in range(M, len(x)):
-        buffer[i] = x[i] * wet * (1-g) + buffer[i-M] * g  #calculam noua vaeabla din bufer
+        buffer[i] = x[i] * wet * s1 + buffer[i-M] * g  #calculam noua vaeabla din bufer
         y[i] = x[i] * dry + buffer[i-M]
         
     #observatie ca variabilele care au inrat in buffer au fost inmultite cu wet
@@ -83,6 +85,7 @@ def reverberating_delay2(x, dry, wet, g, M):
 
 def reverberating_delay(init, dry, wet, g, M):
     M = round(M * 44.1)
+    
     a1 = dry / (abs(dry) + abs(wet*(1-g)))
     a2 = wet*(1-g)/(abs(dry)+abs(wet*(1-g)))
     init_scalat_iesire = init * a1 #sunt alea care ies pe canalul dry
@@ -118,11 +121,12 @@ def all_pass(x, g, M):
     # y[n] = (x[n] + x[n-M] * g)*(-g) + x[n-M] 
     # iar pentru primele M esantioane, z^(-M) nu exista, 
     # deci initial  putem doar copia direct salat
-   
+    
+
     y[:M] = x[:M] * -g 
     buffer[:M] = x[:M] 
     for i in range(M,len(x)):
-       buffer[i] = x[i] + buffer[i-M] * g #facut optimizari scos ultimu esantion si bagat nou 
+       buffer[i] = x[i] + buffer[i-M] * g 
        y[i] = (x[i] + buffer[i-M] * g) * -g + buffer[i-M]
 
  
@@ -185,10 +189,16 @@ def refInit(x):
               419, 4, 79, 66,
               53, 194]
     
+    intarzieri = np.cumsum(intarzieri)#cumulative sum, ne face arrayul de intarzieri
+                                        #cumulate
+    
     for j in range(len(ponderi)):
-        if j != 0:
-            print(  sum(intarzieri[:j])  )
-            y[sum(intarzieri[:j]):] = y[sum(intarzieri[:j]):] + x[:( len(x) - sum(intarzieri[:j]))]*ponderi[j]
+       # if j != 0:
+        #    print(  sum(intarzieri[:j])  )
+           # y[sum(intarzieri[:j]):] = y[sum(intarzieri[:j]):] + x[:( len(x) - sum(intarzieri[:j]))]*ponderi[j]
+           y[intarzieri[j]:] = y[intarzieri[j]:] + x[:(len(x) - intarzieri[j])] * ponderi[j] #practic suprapunem
+                                           #esantioanele intarziata
+        
         
     y = np.array(y)
     y = y 
@@ -204,7 +214,7 @@ def comburi(x, gainComburi):
    # print(gainuri)
     y = 0
     for i in range(len(milisecunde)):
-        y = y + reverberating_delay(x, 0, 1, gainComburi, milisecunde[i]) * 0.7#07 de la functie gresita
+        y = y + reverberating_delay2(x, 0, 1, gainComburi, milisecunde[i]) #07 de la functie gresita
         
     y = np.array(y)
     return y.astype(np.int16)
@@ -213,12 +223,13 @@ def comburi(x, gainComburi):
 
 
 
-def moorer(x, reglSemnal, reglReflexii, reglReverb, gainComburi):
+def moorer(x, reglSemnal, reglReflexii, reglReverb):
     #x = x / 8 #for good measure
+    gainComburi = 0.8
     reflInit = refInit(x)
-    reflInit = reflInit / 8 #for good measure
-    iesireComburi = comburi(reflInit, gainComburi)
-    reverbFinal = all_pass(iesireComburi, 0.8, 7)
+    copieReflInit = reflInit / 8 #for good measure
+    iesireComburi = comburi(copieReflInit, gainComburi)
+    reverbFinal = all_pass(iesireComburi, 0.5, 7)
     y = reglSemnal * x + reglReflexii * reflInit + reglReverb * reverbFinal
     y = np.array(y)
     return y.astype(np.int16)
@@ -228,10 +239,11 @@ def moorer(x, reglSemnal, reglReflexii, reglReverb, gainComburi):
 
 #%%
 
-#semnalControl = moorer(tehno, 0.4, 0.5, 0.5, 0.6)
-semnalControl = moorer(tehno, 0.5, 0.5, 0.5, 0.8)
+
+semnalControl = moorer(tehno, 0.2, 0.7, 0.8)
 #semnalControl2 = reverberating_delay2(tehno,0.5, 0.5, 0.5, 200)
 #semnalControl1 = reverberating_delay(tehno,0.5, 0.5, 0.5, 200)
+#semnalControl = refInit(tehno)
 
 #%%
 obj = sa.play_buffer(semnalControl, 2, 2, 44100 )
@@ -258,30 +270,6 @@ obj = sa.play_buffer(a, 2, 2, 44100)
 
 obj.stop()
 
-#%%
-import matplotlib.pyplot as plt
-plt.figure(figsize = (15, 5))
-plt.plot(semnalControl1, label = "1")
-plt.plot(semnalControl2, label = "2", alpha = 0.4, color='red')
-#plt.plot(q*7-a, label = "diferenta", alpha = 0.4, color='green', marker="*")
-
-plt.grid()
-plt.legend()
-plt.show()
-
-#%%
-
-plt.figure(figsize = (15, 5))
-plt.plot(a, label = "CodeWarrior")
-plt.plot(semnalControl, label = "Python", alpha = 0.4, color='red')
-#plt.plot(q*7-a, label = "diferenta", alpha = 0.4, color='green', marker="*")
-
-plt.grid()
-plt.legend()
-plt.show()
-
-
-
 
 #%%
 
@@ -298,7 +286,7 @@ import matplotlib.pyplot as plt
 
 plt.figure(figsize=(15, 5))
 plt.plot(semnalControl[:4500], label="semnalControl")
-plt.plot(a[:4500], label="a", alpha = 0.6)
+plt.plot(a[:4500], label="semnalStarcore", alpha = 0.6)
 #plt.figure(figsize=(15, 5))
 #plt.plot(q-a, label="diferenta")
 
@@ -310,15 +298,33 @@ plt.show()
 #%%
 
 
-dif = q - a
+plt.figure(figsize=(15, 5))
+plt.plot(semnalControl, label="semnalControl")
+plt.plot(a, label="semnalStarcore", alpha = 0.6)
+#plt.figure(figsize=(15, 5))
+#plt.plot(q-a, label="diferenta")
+
+plt.legend()
+plt.grid()
+plt.show()
+
 
 #%%
-obj = sa.play_buffer(q, 2, 2, 44100)
+
+
+
+dif = semnalControl - a
+
+#%%
+obj = sa.play_buffer(dif, 2, 2, 44100)
 #%%
 
 obj.stop()
 
 
+#%%
 
+
+plt.plot(dif)
 
 
