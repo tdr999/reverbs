@@ -30,6 +30,7 @@ obj = sa.play_buffer(tehno, 2, 2, 44100)
 obj.stop()
 
 
+
 #%%
 
 
@@ -183,18 +184,20 @@ def refInit(x):
 
   
 
-    intarzieri = [190, 759, 44, 190,
+    intarzieri = [189, 759, 44, 190,
               9, 123, 706, 119,
               384, 66, 35, 75,
               419, 4, 79, 66,
-              53, 194]
+              53, 194] #corectie de un esantion din cauza iteratorilor
+                        #in python
+                    
     
     intarzieri = np.cumsum(intarzieri)#cumulative sum, ne face arrayul de intarzieri
                                         #cumulate
     
     for j in range(len(ponderi)):
-       # if j != 0:
-        #    print(  sum(intarzieri[:j])  )
+        # if j != 0:
+        #     print(  sum(intarzieri[:j])  )
            # y[sum(intarzieri[:j]):] = y[sum(intarzieri[:j]):] + x[:( len(x) - sum(intarzieri[:j]))]*ponderi[j]
            y[intarzieri[j]:] = y[intarzieri[j]:] + x[:(len(x) - intarzieri[j])] * ponderi[j] #practic suprapunem
                                            #esantioanele intarziata
@@ -241,6 +244,7 @@ def moorer(x, reglSemnal, reglReflexii, reglReverb):
 
 
 semnalControl = moorer(tehno, 0.2, 0.7, 0.8)
+#semnalControl = moorer(tehno, 0.2, 0.7, 0.5)
 #semnalControl2 = reverberating_delay2(tehno,0.5, 0.5, 0.5, 200)
 #semnalControl1 = reverberating_delay(tehno,0.5, 0.5, 0.5, 200)
 #semnalControl = refInit(tehno)
@@ -285,7 +289,7 @@ import matplotlib.pyplot as plt
 
 
 plt.figure(figsize=(15, 5))
-plt.plot(semnalControl[:4500], label="semnalControl")
+plt.plot(semnalControl[:4500]-1, label="semnalControl")
 plt.plot(a[:4500], label="semnalStarcore", alpha = 0.6)
 #plt.figure(figsize=(15, 5))
 #plt.plot(q-a, label="diferenta")

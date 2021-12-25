@@ -35,15 +35,6 @@ short intarzieri[] = {   190,  949,  993,
 
 
 
-
-
-
-
-short flagFirstPassReflexii[18];
-
-
-
-
 bufferObject bufferRI, buffer1, buffer2, buffer3, buffer4, buffer5, buffer6, buffer7;
 bufferObject buffereComburi[6];
 
@@ -84,7 +75,6 @@ short reverberatingDelay(short x, short dry, short wet, short g, short delay_ms,
 
 
 
-
 short AllpassFilter(Word16 x, Word16 g, Word16 delay_ms, bufferObject *buffer){ 
     buffer->delaySamples = 44.1 * delay_ms;
 
@@ -106,16 +96,19 @@ short AllpassFilter(Word16 x, Word16 g, Word16 delay_ms, bufferObject *buffer){
 
 
 short ri(short x, bufferObject *buffer){
-    buffer->delaySamples = intarzieri[17];
+    buffer->delaySamples = intarzieri[17]; //ar trebui executat o singura data, dar nush unde altundeva sa l pun
+    
 
     buffer->indiceBuffer %= intarzieri[17]; //resetam indicele si ca sa nu depaseasca si ca sa lista circulara
-    append(x, buffer);
+    append(x, buffer);    //DEBUG, pe aici pe undeva se ascunde un bug de un esantion
+
+
     int i, suma = 0;
     for (i = 0; i < 18; i++){
-        if (buffer->indiceBuffer - intarzieri[i] < 0 ){
+        if (buffer->indiceBuffer - intarzieri[i] < 0 ){ //trebe mai mic sau egal ca defapt 190 e 189
             suma = add(suma, mult(buffer->BUFFER[buffer->indiceBuffer  + intarzieri[17] - intarzieri[i]], ponderi[i])); //m am gandit foarte mult la formula asta. indiceCurent+Lungimetotala-intarziere[i]
-        }
-        else {
+        } //de asemenea trebe compensat cu + 1 din acelasi motiv
+        else { //pe aici pe undeva se pierde un esantion, cred ca trebe compensat cu -1 aici sau adaugat in python
             suma = add(suma, mult(buffer->BUFFER[buffer->indiceBuffer - intarzieri[i]], ponderi[i])); //m am gandit foarte mult la formula asta. indiceCurent+Lungimetotala-intarziere[i]
         }
 
