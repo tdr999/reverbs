@@ -33,7 +33,20 @@ short dequeue()
 	return BUFFER[indiceBuffer % delay_samples]; 
 }
 
-
+Word16 simple_delay(Word16 x, Word16 dry, Word16 wet, Word16 scale, Word16 delay_ms){
+	delay_samples = 44.1 * delay_ms;
+	if(indiceBuffer >= delay_samples || flagFirstPass == 1){
+		flagFirstPass =1;
+		indiceBuffer %= delay_samples;
+		short popat = dequeue();
+		append(mult(x, scale));
+		return add(mult(mult(x, scale), dry), mult(popat, wet));
+	}
+	else{
+		append(mult(x, scale));
+		return mult(mult(x, scale), dry);
+	}
+}
 
 int reverberating_delay(short x, short dry, short wet, short g, short delay_ms)
 {
@@ -62,8 +75,6 @@ int reverberating_delay(short x, short dry, short wet, short g, short delay_ms)
 
 
 
-
-
 int AllpassFilter(Word16 x, Word16 g, Word16 delay_ms){ //facut int ptr ca in conversia implicita de la short la int nu se pierde nimica srry vlad
 	delay_samples = 44.1 * delay_ms;
 	
@@ -82,13 +93,12 @@ int AllpassFilter(Word16 x, Word16 g, Word16 delay_ms){ //facut int ptr ca in co
 }
 
 
-
-
 int main()
 {
 	FILE *input = fopen("intrare.dat", "r+b");
 	FILE *outputReverberating = fopen("iesireReverberating.dat", "w+b"); //experimentam cu coada
     FILE *outputAllPass = fopen("iesireAllPass.dat", "w+b");
+    FILE *outputSimple = fopen("iesireSimple.dat", "w+b");
 	short x;
 	
 	while(fscanf(input, "%hd", &x) != EOF)
@@ -101,11 +111,18 @@ int main()
 	{
        	fprintf(outputAllPass, "%hd ", AllpassFilter(x, WORD16(0.6) , 80)); 
 	}
-
+	
+	indiceBuffer = 0;
+	rewind(input);
+	while(fscanf(input, "%hd", &x) != EOF)
+	{
+       	fprintf(outputSimple, "%hd ", simple_delay(x, WORD16(0.6) , WORD16(0.4), WORD16(0.99), 80)); 
+	}
 	
 	fclose(input);
 	fclose(outputReverberating);
     fclose(outputAllPass);
+    fclose(outputSimple);
 	return 0;
 	
 }
