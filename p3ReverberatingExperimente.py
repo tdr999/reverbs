@@ -73,7 +73,8 @@ def reverberating_delay2(x, dry, wet, g, M):
     for i in range(M, len(x)):
         buffer[i] = x[i] * wet * s1 + buffer[i-M] * g  #calculam noua vaeabla din bufer
         y[i] = x[i] * dry + buffer[i-M]
-        
+    
+
     #observatie ca variabilele care au inrat in buffer au fost inmultite cu wet
     y = np.array(y)
     return y.astype(np.int16)
@@ -130,7 +131,7 @@ def all_pass(x, g, M):
        buffer[i] = x[i] + buffer[i-M] * g 
        y[i] = (x[i] + buffer[i-M] * g) * -g + buffer[i-M]
 
- 
+
     y = np.array(y)
     return y.astype(np.int16)
 
@@ -242,12 +243,18 @@ def moorer(x, reglSemnal, reglReflexii, reglReverb):
 
 #%%
 
+#RULAT FUNCTII DE TEST PE RAND, APOI PLOTAT SI PUS TITLU
+
+
+#decomenteaza ce ai nevoie vlad si modifica alea la grafice doar
+
+#semnalControl = reverberating_delay2(tehno,0.2, 0.7, 0.8, 90)
+#semnalControl = all_pass(tehno,0.7, 90)
+#semnalControl = schroeder(tehno, 0.5)
+#semnalControl1 = reverberating_delay(tehno,0.2, 0.7, 0.8, 90)
+#semnalControl = refInit(tehno)
 
 semnalControl = moorer(tehno, 0.2, 0.7, 0.8)
-#semnalControl = moorer(tehno, 0.2, 0.7, 0.5)
-#semnalControl2 = reverberating_delay2(tehno,0.5, 0.5, 0.5, 200)
-#semnalControl1 = reverberating_delay(tehno,0.5, 0.5, 0.5, 200)
-#semnalControl = refInit(tehno)
 
 #%%
 obj = sa.play_buffer(semnalControl, 2, 2, 44100 )
@@ -260,12 +267,14 @@ obj.stop()
 ##comparatii
 #
 
-iesireCW = open("C:\\Users\\tudor_ytmdyrk\\Desktop\\p3 cmpilat\\iesireMoorer.dat", "r+")
+iesireCW = open("C:\\Users\\tudor_ytmdyrk\\Desktop\\p3 cmpilat\\moorerMatei.dat", "r+")
 a = [i for i in iesireCW]  
 a = [int(i) for i in a[0].split()]
 
 a = np.array(a)
 a = a.astype(np.int16)
+
+
 
 #%%
 
@@ -289,8 +298,10 @@ import matplotlib.pyplot as plt
 
 
 plt.figure(figsize=(15, 5))
-plt.plot(semnalControl[:4500]-1, label="semnalControl")
-plt.plot(a[:4500], label="semnalStarcore", alpha = 0.6)
+plt.title("Moorer pe lana")
+plt.plot(semnalControl, label="semnalControl", color="blue")
+plt.plot(a, label="semnalStarcore", alpha = 0.5, color="red")
+#plt.plot(b, label="semnalStarcore2", alpha = 0.5, color="green")
 #plt.figure(figsize=(15, 5))
 #plt.plot(q-a, label="diferenta")
 
@@ -299,18 +310,6 @@ plt.grid()
 plt.show()
 
 
-#%%
-
-
-plt.figure(figsize=(15, 5))
-plt.plot(semnalControl, label="semnalControl")
-plt.plot(a, label="semnalStarcore", alpha = 0.6)
-#plt.figure(figsize=(15, 5))
-#plt.plot(q-a, label="diferenta")
-
-plt.legend()
-plt.grid()
-plt.show()
 
 
 #%%
@@ -328,7 +327,8 @@ obj.stop()
 
 #%%
 
-
+plt.title("Eroarea la Moorer")
+plt.grid()
 plt.plot(dif)
 
 

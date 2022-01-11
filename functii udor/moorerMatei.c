@@ -59,7 +59,6 @@ short reverberatingDelay(short x, short dry, short wet, short g, short delay_ms,
     append(add(mult(mult(x, wet), s1), mult(popat, g)), buffer); 
     return add(mult(x, dry), popat); 
 
-
 }
 
 
@@ -67,18 +66,10 @@ short reverberatingDelay(short x, short dry, short wet, short g, short delay_ms,
 
 short AllpassFilter(Word16 x, Word16 g, Word16 delay_ms, bufferObject *buffer){ 
     buffer->delaySamples = 44.1 * delay_ms;
-
-    if(buffer->indiceBuffer >= buffer->delaySamples || buffer->flagFirstPass == 1){
-        buffer->indiceBuffer %= buffer->delaySamples;
-        short popat = dequeue(buffer);
-
-        append(add(x, mult(popat,g)), buffer);
-        return add(mult(add(x, mult(popat, g)), -g) , popat); //functia corecta de transfer VLAD
-    }
-    else{
-        append(x, buffer);
-        return mult(x,(-g));
-    }
+    buffer->indiceBuffer %= buffer->delaySamples;
+    short popat = dequeue(buffer);
+    append(add(x, mult(popat,g)), buffer);
+    return add(mult(add(x, mult(popat, g)), -g) , popat); //functia corecta de transfer VLAD
 }
 
 
@@ -132,7 +123,7 @@ short moorer(short x, short reglSemnal, short reglReflexii, short reglReverb){
 int main()
 {
     FILE *input = fopen("intrare.dat", "r+b");
-    FILE *outputMoorer = fopen("iesireMoorer.dat", "w+b"); //experimentam cu coada
+    FILE *outputMoorer = fopen("moorerMatei.dat", "w+b"); //experimentam cu coada
     short x, temp;
     printf("befor while\n");
     int i = 0;
