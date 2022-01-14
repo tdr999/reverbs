@@ -45,14 +45,20 @@ short reverberatingDelay(short x, short dry, short wet, short g, short delay_ms,
 int main()
 {
     FILE *input = fopen("intrare.dat", "r+b");
-    FILE *outputMoorer = fopen("iesireReverberating2.dat", "w+b"); //experimentam cu coada
-    short x, temp;
+    FILE *outputMoorer = fopen("iesireReverberatingPADDING.dat", "w+b"); //experimentam cu coada
+    short x, temp, delay = 90;
     printf("befor while\n");
     int i = 0;
 
     while(fscanf(input, "%hd", &x) != EOF)
     {
-        fprintf(outputMoorer, "%hd ", reverberatingDelay(x, WORD16(0.2), WORD16(0.7), WORD16(0.8), 90, &buffer));
+        fprintf(outputMoorer, "%hd ", reverberatingDelay(x, WORD16(0.2), WORD16(0.7), WORD16(0.8), delay, &buffer));
+
+    }
+    while(i < 44.1 * delay)
+    {
+        fprintf(outputMoorer, "%hd ", reverberatingDelay(0, WORD16(0.2), WORD16(0.7), WORD16(0.8), delay, &buffer));
+        i++;
 
     }
 

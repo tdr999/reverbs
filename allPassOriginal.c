@@ -10,7 +10,6 @@ typedef struct buf{
     short BUFFER[4000];
     short indiceBuffer;
     short delaySamples;
-    short flagFirstPass; 
 
 } bufferObject;
 
@@ -29,28 +28,13 @@ short dequeue(bufferObject *buffer)
 }
 
 
-
-short reverberatingDelay(short x, short dry, short wet, short g, short delay_ms, bufferObject *buffer)
-{
+short AllpassFilter(Word16 x, Word16 g, Word16 delay_ms, bufferObject *buffer){ 
     buffer->delaySamples = 44.1 * delay_ms;
-    short s1 = sub(WORD16(0.999), g);
-    if (buffer->indiceBuffer >= buffer->delaySamples || buffer->flagFirstPass == 1) 
-    {
-        buffer->flagFirstPass = 1; 
-        buffer->indiceBuffer %= buffer->delaySamples; 
-        short popat = dequeue(buffer);
-        append(add(mult(mult(x, wet), s1), mult(popat, g)), buffer); 
-        return add(mult(x, dry), popat); 
-
-
-    }
-    else
-    {
-        append(mult(mult(x, wet), s1), buffer); 
-        return mult(x, dry); 
-    }
+    buffer->indiceBuffer %= buffer->delaySamples;
+    short popat = dequeue(buffer);
+    append(add(x, mult(popat,g)), buffer);
+    return add(mult(add(x, mult(popat, g)), -g) , popat); //functia corecta de transfer VLAD
 }
-
 
 
 
@@ -58,14 +42,13 @@ short reverberatingDelay(short x, short dry, short wet, short g, short delay_ms,
 int main()
 {
     FILE *input = fopen("intrare.dat", "r+b");
-    FILE *outputMoorer = fopen("iesireReverberating1.dat", "w+b"); //experimentam cu coada
+    FILE *outputMoorer = fopen("iesireHall.dat", "w+b"); //experimentam cu coada
     short x, temp;
     printf("befor while\n");
     int i = 0;
-
     while(fscanf(input, "%hd", &x) != EOF)
     {
-        fprintf(outputMoorer, "%hd ", reverberatingDelay(x, WORD16(0.2), WORD16(0.7), WORD16(0.8), 90, &buffer));
+        fprintf(outputMoorer, "%hd ", AllpassFilter(x, WORD16(0.7), 90,  &buffer));
 
     }
 
@@ -74,3 +57,4 @@ int main()
     return 0;
 
 }
+

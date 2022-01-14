@@ -42,13 +42,19 @@ short AllpassFilter(Word16 x, Word16 g, Word16 delay_ms, bufferObject *buffer){
 int main()
 {
     FILE *input = fopen("intrare.dat", "r+b");
-    FILE *outputMoorer = fopen("iesireHall.dat", "w+b"); //experimentam cu coada
-    short x, temp;
+    FILE *outputMoorer = fopen("iesireAllpassPadding.dat", "w+b"); //experimentam cu coada
+    short x, temp, delay = 90;
     printf("befor while\n");
     int i = 0;
-       while(fscanf(input, "%hd", &x) != EOF)
+    while(fscanf(input, "%hd", &x) != EOF)
     {
-        fprintf(outputMoorer, "%hd ", AllpassFilter(x, WORD16(0.7), 90,  &buffer));
+        fprintf(outputMoorer, "%hd ", AllpassFilter(x, WORD16(0.7), delay,  &buffer));
+
+    }
+    while(i < delay * 44.1)
+    {
+        fprintf(outputMoorer, "%hd ", AllpassFilter(0, WORD16(0.7), delay,  &buffer));
+        i++;
 
     }
 

@@ -1,6 +1,0 @@
-file = fopen("iesireSimple.dat", 'r');
-y = fread(file);
-FS = 44100;
-
-sound(y, FS);
-fclose(file);

@@ -79,7 +79,7 @@ short schroeder(short x, Word16 dry){
 int main()
 {
     FILE *input = fopen("intrare.dat", "r+b");
-    FILE *outputSchroeder = fopen("Schroeder.dat", "w+b"); //experimentam cu coada
+    FILE *outputSchroeder = fopen("iesireSchroeder.dat", "w+b"); //experimentam cu coada
     short x;
 
     while(fscanf(input, "%hd", &x) != EOF)

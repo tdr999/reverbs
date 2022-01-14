@@ -59,7 +59,6 @@ short reverberatingDelay(short x, short dry, short wet, short g, short delay_ms,
     append(add(mult(mult(x, wet), s1), mult(popat, g)), buffer); 
     return add(mult(x, dry), popat); 
 
-
 }
 
 
@@ -67,18 +66,10 @@ short reverberatingDelay(short x, short dry, short wet, short g, short delay_ms,
 
 short AllpassFilter(Word16 x, Word16 g, Word16 delay_ms, bufferObject *buffer){ 
     buffer->delaySamples = 44.1 * delay_ms;
-
-    if(buffer->indiceBuffer >= buffer->delaySamples || buffer->flagFirstPass == 1){
-        buffer->indiceBuffer %= buffer->delaySamples;
-        short popat = dequeue(buffer);
-
-        append(add(x, mult(popat,g)), buffer);
-        return add(mult(add(x, mult(popat, g)), -g) , popat); //functia corecta de transfer VLAD
-    }
-    else{
-        append(x, buffer);
-        return mult(x,(-g));
-    }
+    buffer->indiceBuffer %= buffer->delaySamples;
+    short popat = dequeue(buffer);
+    append(add(x, mult(popat,g)), buffer);
+    return add(mult(add(x, mult(popat, g)), -g) , popat); //functia corecta de transfer VLAD
 }
 
 
@@ -120,7 +111,9 @@ short moorer(short x, short reglSemnal, short reglReflexii, short reglReverb){
     reflexiiInit = ri(x, &bufferRI);
     int i;
     copieReflexiiInit = shr(reflexiiInit, 3); //scalare for good measure
-    for (i = 0; i < 6; i++) {iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, WORD16(0), WORD16(0.999), WORD16(gainComburi), milisecundeComburi[i], &buffereComburi[i]));}
+    for (i = 0; i < 6; i++) {
+        iesireComburi = add(iesireComburi, reverberatingDelay(copieReflexiiInit, WORD16(0), WORD16(0.999), WORD16(gainComburi), milisecundeComburi[i], &buffereComburi[i]));
+    }
     reverbFinal = AllpassFilter(iesireComburi, WORD16(0.5), 7,&buffer7);
     y = add( add( mult(x, reglSemnal), mult(reglReflexii, reflexiiInit)), mult(reglReverb, reverbFinal));
     return y;

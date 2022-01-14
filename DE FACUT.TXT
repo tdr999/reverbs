@@ -1,6 +1,0 @@
-
--> DE ADAUGAT Si PARTEA DE JOS A SCHEMEI LA MOORER SI TERMINAT MOORER
--> curatat coduri c si python
--> facut biblioteca si containerizat si mai departe in c
--> korusurile
--> anceput pdfuri
