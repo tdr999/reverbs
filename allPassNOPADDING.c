@@ -42,7 +42,7 @@ short AllpassFilter(Word16 x, Word16 g, Word16 delay_ms, bufferObject *buffer){
 int main()
 {
     FILE *input = fopen("intrare.dat", "r+b");
-    FILE *outputMoorer = fopen("iesireHall.dat", "w+b"); //experimentam cu coada
+    FILE *outputMoorer = fopen("iesireAllNOPADDING.dat", "w+b"); //experimentam cu coada
     short x, temp;
     printf("befor while\n");
     int i = 0;

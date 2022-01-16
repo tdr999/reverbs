@@ -45,7 +45,7 @@ short reverberatingDelay(short x, short dry, short wet, short g, short delay_ms,
 int main()
 {
     FILE *input = fopen("intrare.dat", "r+b");
-    FILE *outputMoorer = fopen("iesireReverberatingORIGINAL.dat", "w+b"); //experimentam cu coada
+    FILE *outputMoorer = fopen("iesireReverberatingNOPADDING.dat", "w+b"); //experimentam cu coada
     short x, temp;
     printf("befor while\n");
     int i = 0;
