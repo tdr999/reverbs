@@ -66,7 +66,6 @@ int main()
     FILE *outputEchoes = fopen("iesireEchoes.dat", "w+b"); 
     short x, temp;
     int i = 0;
-    printf("befor while\n");
 	
 	MStoSample(echoes_delay);
 	
