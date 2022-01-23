@@ -227,13 +227,12 @@ def refInit(x):
 #comburi ptr moorer
 
 def comburi(x, gainComburi):
-   # x = x / 8
     milisecunde = [40, 44, 48, 52, 56, 60]
  #   gainuri = [10**(-3 * round(i * 44.1 ) / 44.1) for i in milisecunde] #form 3.43
-   # print(gainuri)
+
     y = 0
     for i in range(len(milisecunde)):
-        y = y + reverberating_delay2(x, 0, 1, gainComburi, milisecunde[i]) #07 de la functie gresita
+        y = y + reverberating_delay_NOPADDING(x, 0, 1, gainComburi, milisecunde[i]) #07 de la functie gresita
         
     y = np.array(y)
     return y.astype(np.int16)
@@ -248,7 +247,7 @@ def moorer(x, reglSemnal, reglReflexii, reglReverb):
     reflInit = refInit(x)
     copieReflInit = reflInit / 8 #for good measure
     iesireComburi = comburi(copieReflInit, gainComburi)
-    reverbFinal = all_pass(iesireComburi, 0.5, 7)
+    reverbFinal = all_pass_NOPADDING(iesireComburi, 0.5, 7)
     y = reglSemnal * x + reglReflexii * reflInit + reglReverb * reverbFinal
     y = np.array(y)
     return y.astype(np.int16)
@@ -259,7 +258,6 @@ def moorer(x, reglSemnal, reglReflexii, reglReverb):
 #RULATi reverberatingDelayExecutabil
 
 
-#decomenteaza ce ai nevoie vlad si modifica alea la grafice doar
 
 semnalControl = reverberating_delay_PADDING(tehno,0.2, 0.7, 0.8, 90)
 
@@ -276,9 +274,6 @@ plt.figure(figsize=(15, 5))
 plt.title("RevDelay pe lana")
 plt.plot(semnalControl, label="semnalControl", color="blue")
 plt.plot(a, label="semnalStarcore", alpha = 0.5, color="red")
-#plt.plot(b, label="semnalStarcore2", alpha = 0.5, color="green")
-#plt.figure(figsize=(15, 5))
-#plt.plot(q-a, label="diferenta")
 
 plt.legend()
 plt.grid()
@@ -304,9 +299,6 @@ plt.figure(figsize=(15, 5))
 plt.title("AllPass pe lana")
 plt.plot(semnalControl, label="semnalControl", color="blue")
 plt.plot(a, label="semnalStarcore", alpha = 0.5, color="red")
-#plt.plot(b, label="semnalStarcore2", alpha = 0.5, color="green")
-#plt.figure(figsize=(15, 5))
-#plt.plot(q-a, label="diferenta")
 
 plt.legend()
 plt.grid()
@@ -333,9 +325,7 @@ plt.figure(figsize=(15, 5))
 plt.title("Schroeder pe lana")
 plt.plot(semnalControl, label="semnalControl", color="blue")
 plt.plot(a, label="semnalStarcore", alpha = 0.5, color="red")
-#plt.plot(b, label="semnalStarcore2", alpha = 0.5, color="green")
-#plt.figure(figsize=(15, 5))
-#plt.plot(q-a, label="diferenta")
+
 
 plt.legend()
 plt.grid()
@@ -363,9 +353,6 @@ plt.figure(figsize=(15, 5))
 plt.title("Moorer pe lana")
 plt.plot(semnalControl, label="semnalControl", color="blue")
 plt.plot(a, label="semnalStarcore", alpha = 0.5, color="red")
-#plt.plot(b, label="semnalStarcore2", alpha = 0.5, color="green")
-#plt.figure(figsize=(15, 5))
-#plt.plot(q-a, label="diferenta")
 
 plt.legend()
 plt.grid()
@@ -375,22 +362,3 @@ plt.show()
 iesireCW.close()
 
 
-
-
-#%%
-
-
-import simpleaudio as sa
-iesireCW = open("iesireEchoes.dat", "r+")
-a = [i for i in iesireCW]  
-a = [int(i) for i in a[0].split()]
-
-a.append(0)
-
-a = np.array(a)
-a = a.astype(np.int16)
-
-plt.plot(a, label="semnalStarcore", alpha = 0.5, color="red")
-
-
-sa.play_buffer(a, 2, 2, 44100)
