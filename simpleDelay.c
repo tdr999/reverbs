@@ -17,7 +17,7 @@ bufferObject buffer;
 
 void append(short a, bufferObject *buffer)
 {
-    buffer->BUFFER[buffer->indiceBuffer % buffer->delaySamples] = a; //din cauza asta crapa
+    buffer->BUFFER[buffer->indiceBuffer % buffer->delaySamples] = a; 
     buffer->indiceBuffer++;
 }
 
@@ -29,13 +29,13 @@ short dequeue(bufferObject *buffer)
 
 
 Word16 simpleDelay(Word16 x, Word16 dry, Word16 wet, Word16 scale ,Word16 delay_ms, bufferObject *buffer){
-	buffer->delaySamples = 44.1*delay_ms;
+	buffer->delaySamples = 44.1*delay_ms; //calculam numarul de samples
 
-	buffer->indiceBuffer %= buffer->delaySamples;
+	buffer->indiceBuffer %= buffer->delaySamples; // resetam indicele buffer
 	short popat = dequeue(buffer);
 		
 	append(mult(x, scale), buffer);
-	return add(mult(mult(x, scale), dry), mult(popat, wet));
+	return add(mult(mult(x, scale), dry), mult(popat, wet)); //implementarea formulei direct
 }
 
 
@@ -46,7 +46,7 @@ int main()
     FILE *input = fopen("intrare.dat", "r+b");
     FILE *outputSimple = fopen("iesireSimple.dat", "w+b"); //experimentam cu coada
     short x, temp;
-    printf("befor while\n");
+    //printf("befor while\n");
     int i=0;
     
     while(fscanf(input, "%hd", &x) != EOF)
@@ -56,10 +56,10 @@ int main()
     }
     
     buffer.indiceBuffer = 3999;
-    while(buffer.indiceBuffer != -1){
+    while(buffer.indiceBuffer != -1){ //golim coada
     	//printf("%d ", buffer.indiceBuffer);
     	short pop = dequeue(&buffer); 
-    	printf("%hd ", pop);
+    	//printf("%hd ", pop);
     	fprintf(outputSimple, "%hd ",pop);
     	buffer.indiceBuffer--;
 	}

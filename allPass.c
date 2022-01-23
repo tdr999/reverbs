@@ -18,7 +18,7 @@ bufferObject buffer;
 
 void append(short a, bufferObject *buffer)
 {
-    buffer->BUFFER[buffer->indiceBuffer % buffer->delaySamples] = a; //din cauza asta crapa
+    buffer->BUFFER[buffer->indiceBuffer % buffer->delaySamples] = a; 
     buffer->indiceBuffer++;
 }
 
@@ -29,11 +29,11 @@ short dequeue(bufferObject *buffer)
 
 
 short AllpassFilter(Word16 x, Word16 g, Word16 delay_ms, bufferObject *buffer){ 
-    buffer->delaySamples = 44.1 * delay_ms;
-    buffer->indiceBuffer %= buffer->delaySamples;
+    buffer->delaySamples = 44.1 * delay_ms; //calculam numarul de samples
+    buffer->indiceBuffer %= buffer->delaySamples; //resetam indicele buffer
     short popat = dequeue(buffer);
-    append(add(x, mult(popat,g)), buffer);
-    return add(mult(add(x, mult(popat, g)), -g) , popat); //functia corecta de transfer VLAD
+    append(add(x, mult(popat,g)), buffer); //adaugam in buffer
+    return add(mult(add(x, mult(popat, g)), -g) , popat); //implementarea diagramei
 }
 
 
@@ -51,7 +51,7 @@ int main()
         fprintf(outputMoorer, "%hd ", AllpassFilter(x, WORD16(0.7), delay,  &buffer));
 
     }
-    while(i < delay * 44.1)
+    while(i < delay * 44.1) // golim coada
     {
         fprintf(outputMoorer, "%hd ", AllpassFilter(0, WORD16(0.7), delay,  &buffer));
         i++;
