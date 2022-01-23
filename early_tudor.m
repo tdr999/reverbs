@@ -21,29 +21,30 @@ buf = zeros(delay_sample(4));
 indiceBuf = 1;
 
 
+len = length(x)
 
 
-% for i=1:length(x)
-%   indiceBuf = mod(indiceBuf, delay_sample(4));
-%   buf(indiceBuf) = x(i);
-%   indiceBuf = indiceBuf + 1
-%   temp = 0;
-%   for j=1:length(delay_sample)
-%     
-%     if (indiceBuf - delay_sample(j) < 0)
-%       temp = temp + buf(indiceBuf + delay_sample(4) - delay_sample(j))*wet(j)
-%     else
-%       temp = temp + buf(indiceBuf - delay_sample(j)) * wet(j)
-%     end
-%     
-%   end
-%   fprintf(temporaryfile, "%d ", temp);
-%   print(temp);
-% end
+primaIntarziere = zeros(len, 'int16');
+douaIntarziere = zeros(len, 'int16');
+treiaIntarziere = zeros(len, 'int16');
+patruIntarziere = zeros(len, 'int16');
 
 
-primaIntarziere[,]
 
+
+primaIntarziere = x(1:1:(len - delay_sample(1)))*wet(1);
+douaIntarziere = x(1:1:(len - delay_sample(2))))*wet(2);
+treiaIntarziere = x(1:1:(len - delay_sample(3)))*wet(3);
+patruIntarziere = x(1:1:(len - delay_sample(4)))*wet(4);
+
+padding1 = zeros(delay_sample(1));
+padding2 = zeros(delay_sample(2));
+padding3 = zeros(delay_sample(3));
+padding4 = zeros(delay_sample(4));
+
+primaIntarzierePadat = [padding1; primaIntarziere];
+
+padding1(end:end+length(primaIntarziere)+1) = primaIntarziere;
 
 
 

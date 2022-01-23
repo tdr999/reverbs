@@ -373,3 +373,24 @@ plt.show()
 
 
 iesireCW.close()
+
+
+
+
+#%%
+
+
+import simpleaudio as sa
+iesireCW = open("iesireEchoes.dat", "r+")
+a = [i for i in iesireCW]  
+a = [int(i) for i in a[0].split()]
+
+a.append(0)
+
+a = np.array(a)
+a = a.astype(np.int16)
+
+plt.plot(a, label="semnalStarcore", alpha = 0.5, color="red")
+
+
+sa.play_buffer(a, 2, 2, 44100)
