@@ -12,8 +12,14 @@ typedef struct buf{
     short delaySamples;
 } bufferObject;
 
+Word16 intarzieri[4];
+Word16 echoes_delay[4] = {30, 50 , 80, 90};
 
-bufferObject bufferA, bufferB, bufferC, bufferD;;
+Word16 dry = WORD16(0.6);
+Word16 wet[4] = {WORD16(0.2), WORD16(0.4), WORD16(0.6), WORD16(0.8)};	
+Word16 scale = WORD16(1 / (0.6 + 0.2 + 0.4 + 0.6 + 0.8));
+
+bufferObject buffer;
 
 void append(short a, bufferObject *buffer)
 {
@@ -26,57 +32,33 @@ short dequeue(bufferObject *buffer)
     return buffer->BUFFER[buffer->indiceBuffer % buffer->delaySamples]; 
 }
 
-
-
-Word16 early_echoes(Word16 x, Word16 dry, Word16 wet[], Word16 scale, Word16 delay_ms[], bufferObject *bufferA,  bufferObject *bufferB, bufferObject *bufferC, bufferObject *bufferD){
-	bufferA->delaySamples = 44.1 * delay_ms[0];
-	bufferB->delaySamples = 44.1 * (delay_ms[1]-delay_ms[2]);
-	bufferC->delaySamples = 44.1 * (delay_ms[2]-delay_ms[1]-delay_ms[0]);
-	bufferD->delaySamples = 44.1 * (delay_ms[3]-delay_ms[2]-delay_ms[1]-delay_ms[0]);
-	
-	short toAdd[4];
-		
-		bufferA->indiceBuffer %= bufferA->delaySamples;
-		short popat = dequeue(bufferA);
-		append(mult(x, scale), bufferA);
-		toAdd[0] = add(mult(mult(x, scale), dry), mult(popat, wet[0]));
-		append(popat, bufferB);
-		
-		if(bufferB->indiceBuffer <= bufferB->delaySamples)
-			return toAdd[0];
-	
-		else if (bufferB->indiceBuffer >= bufferB->delaySamples){
-	
-			bufferB->indiceBuffer %= bufferB->delaySamples;
-			popat = dequeue(bufferB);
-			append(popat, bufferC);
-			toAdd[1] = add(toAdd[0], mult(popat, wet[1]));
-			
-			if(bufferC->indiceBuffer <= bufferC->delaySamples)
-				return toAdd[1];
-			
-			else if (bufferC->indiceBuffer >= bufferC->delaySamples){
-				
-				bufferC->indiceBuffer %= bufferC->delaySamples;
-				popat = dequeue(bufferC);
-				append(popat, bufferD);
-				toAdd[2] = add(toAdd[1], mult(popat, wet[2]));
-			
-				if(bufferD->indiceBuffer <= bufferD->delaySamples)
-					return toAdd[2];
-				
-				else if (bufferD->indiceBuffer >= bufferD->delaySamples){
-
-				bufferD->indiceBuffer %= bufferD->delaySamples;
-				popat = dequeue(bufferD);
-				toAdd[3] = add(toAdd[2], mult(popat, wet[3]));
-			
-				return toAdd[3];   
-				}
-			}
+void MStoSample(Word16 delay[4]){
+	int i=0;
+	for(i=0;i<4;i++){
+		intarzieri[i] = 44.1 * delay[i];
 		}
-	}
+}
 
+
+Word16 early_echoes(Word16 x, bufferObject *buffer){
+
+    buffer->delaySamples = intarzieri[3]; 
+    buffer->indiceBuffer %= intarzieri[3]; 
+    append(mult(x,scale), buffer);    
+    
+    int i, suma = 0;
+    for (i = 0; i < 4; i++){
+        if (buffer->indiceBuffer - intarzieri[i]<0){
+            suma = add(suma, mult(buffer->BUFFER[buffer->indiceBuffer  + intarzieri[3] - intarzieri[i]], wet[i])); 
+        } 
+        else { 
+            suma = add(suma, mult(buffer->BUFFER[buffer->indiceBuffer - intarzieri[i]], wet[i])); 
+        }
+    } 
+	
+	Word16 out = add(mult(mult(dry, x),scale), suma);
+	return out;
+	}
 
 int main()
 {
@@ -85,20 +67,17 @@ int main()
     short x, temp;
     int i = 0;
     printf("befor while\n");
-    
-    Word16 echoes_wet[4] = {WORD16(0.2), WORD16(0.4), WORD16(0.6), WORD16(0.8)};
-	Word16 echoes_delay[4] = {50, 80 , 100, 160};
 	
-	Word16 scale = WORD16(1 / (0.2+0.4+0.6+0.8));
-    
+	MStoSample(echoes_delay);
+	
     while(fscanf(input, "%hd", &x) != EOF)
-    {
-        fprintf(outputEchoes, "%hd ", early_echoes(x, WORD16(0.6) , echoes_wet, scale, echoes_delay, &bufferA, &bufferB, &bufferC, &bufferD));
+    {	
+        fprintf(outputEchoes, "%hd ", early_echoes(x, &buffer));
 
     }
     
     while(i< 44.1*echoes_delay[3]){
-    	fprintf(outputEchoes, "%hd ", early_echoes(0, WORD16(0.6) , echoes_wet, scale, echoes_delay, &bufferA, &bufferB, &bufferC, &bufferD));
+    	fprintf(outputEchoes, "%hd ", early_echoes(0, &buffer));
 		i++;
 	}
 
@@ -107,3 +86,4 @@ int main()
     return 0;
 
 }
+
