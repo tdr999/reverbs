@@ -3,7 +3,7 @@
 #include "prototype.h"
 #include "prototype.c"
 //pierdut precizie dar trecut tou pe 16 biti mai usor de lucrat
-
+//comentariu
 short lenBuffer = 4000;
 
 typedef struct buf{
